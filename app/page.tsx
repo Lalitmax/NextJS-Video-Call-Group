@@ -23,7 +23,7 @@ export default function Home() {
               Channel Name
             </label>
             <input
-              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full text-black p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               id="channel"
               type="text"
               name="channel"
