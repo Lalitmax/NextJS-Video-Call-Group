@@ -13,7 +13,7 @@ const Page: FC = () => {
                 Channel: {channelName}
             </p>
 
-            <Call appId={process.env.PUBLIC_AGORA_APP_ID!} channelName={channelName} />
+            <Call appId={process.env.NEXT_PUBLIC_AGORA_APP_ID!} channelName={channelName} />
         </main>
     );
 };

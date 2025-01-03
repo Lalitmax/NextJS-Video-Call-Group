@@ -15,6 +15,10 @@ import AgoraRTC, {
 import Link from "next/link";
 
 function Call(props: { appId: string; channelName: string }) {
+  if (!props.appId) {
+    return <div>Error: Agora App ID is not configured.</div>;
+  }
+
   const client = useRTCClient(
     AgoraRTC.createClient({ codec: "vp8", mode: "rtc" })
   );
@@ -33,6 +37,7 @@ function Call(props: { appId: string; channelName: string }) {
     </AgoraRTCProvider>
   );
 }
+
 
 function Videos(props: { channelName: string; AppID: string }) {
   const { AppID, channelName } = props;
