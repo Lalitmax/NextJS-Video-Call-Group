@@ -1,3 +1,4 @@
+"use client"
 import { FC } from "react";
 import { useParams } from "next/navigation";
 import Call from "@/components/Call";
