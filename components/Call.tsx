@@ -12,7 +12,7 @@ import AgoraRTC, {
   useRemoteAudioTracks,
   useRemoteUsers,
 } from "agora-rtc-react";
-import Link from "next/link";
+import { useState } from "react";
 
 function Call(props: { appId: string; channelName: string }) {
   const client = useRTCClient(
@@ -22,18 +22,9 @@ function Call(props: { appId: string; channelName: string }) {
   return (
     <AgoraRTCProvider client={client}>
       <Videos channelName={props.channelName} AppID={props.appId} />
-      <div className="fixed z-10 bottom-0 left-0 right-0 flex justify-center pb-4">
-        <Link
-          className="px-5 py-3 text-base font-medium text-center text-white bg-red-400 rounded-lg hover:bg-red-500 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900 w-40"
-          href="/"
-        >
-          End Call
-        </Link>
-      </div>
     </AgoraRTCProvider>
   );
 }
-
 
 function Videos(props: { channelName: string; AppID: string }) {
   const { AppID, channelName } = props;
@@ -44,7 +35,6 @@ function Videos(props: { channelName: string; AppID: string }) {
   const { isLoading: isLoadingCam, localCameraTrack, error: camError } =
     useLocalCameraTrack();
 
-  // Remote users and their audio tracks
   const remoteUsers = useRemoteUsers();
   const { audioTracks } = useRemoteAudioTracks(remoteUsers);
 
@@ -58,13 +48,38 @@ function Videos(props: { channelName: string; AppID: string }) {
     token: null,
   });
 
-  // Play remote audio tracks
-  audioTracks.map((track) => track.play());
+  // Access the RTC client
+  const client = useRTCClient();
 
-  // Handle loading state for devices
-  const deviceLoading = isLoadingMic || isLoadingCam;
+  // State for camera and microphone
+  const [isCameraOn, setCameraOn] = useState(true);
+  const [isMicOn, setMicOn] = useState(true);
 
-  if (deviceLoading) {
+  // Toggle camera
+  const toggleCamera = () => {
+    if (localCameraTrack) {
+      localCameraTrack.setEnabled(!isCameraOn);
+      setCameraOn(!isCameraOn);
+    }
+  };
+
+  // Toggle microphone
+  const toggleMic = () => {
+    if (localMicrophoneTrack) {
+      localMicrophoneTrack.setEnabled(!isMicOn);
+      setMicOn(!isMicOn);
+    }
+  };
+
+  // Leave the call
+  const handleLeave = async () => {
+    if (client) {
+      await client.leave();
+      window.location.href = "/"; // Redirect to home or another page
+    }
+  };
+
+  if (isLoadingMic || isLoadingCam) {
     return (
       <div className="flex flex-col items-center pt-40">
         Loading devices...
@@ -72,7 +87,6 @@ function Videos(props: { channelName: string; AppID: string }) {
     );
   }
 
-  // Handle device access errors
   if (micError || camError) {
     return (
       <div className="flex flex-col items-center pt-40 text-red-500">
@@ -83,7 +97,6 @@ function Videos(props: { channelName: string; AppID: string }) {
     );
   }
 
-  // Dynamic grid layout for video tracks
   const unit = "minmax(0, 1fr) ";
 
   return (
@@ -95,23 +108,46 @@ function Videos(props: { channelName: string; AppID: string }) {
             remoteUsers.length > 9
               ? unit.repeat(4)
               : remoteUsers.length > 4
-                ? unit.repeat(3)
-                : remoteUsers.length > 1
-                  ? unit.repeat(2)
-                  : unit,
+              ? unit.repeat(3)
+              : remoteUsers.length > 1
+              ? unit.repeat(2)
+              : unit,
         }}
       >
-        {/* Local video track */}
         <LocalVideoTrack
           track={localCameraTrack}
           play={true}
           className="w-full h-full"
         />
-
-        {/* Remote video tracks */}
         {remoteUsers.map((user) => (
           <RemoteUser user={user} key={user.uid} />
         ))}
+      </div>
+
+      {/* Controls */}
+      <div className="flex justify-center space-x-4 mt-4">
+        <button
+          onClick={toggleCamera}
+          className={`px-4 py-2 text-white rounded-lg ${
+            isCameraOn ? "bg-blue-500 hover:bg-blue-600" : "bg-gray-500"
+          }`}
+        >
+          {isCameraOn ? "Stop Camera" : "Start Camera"}
+        </button>
+        <button
+          onClick={toggleMic}
+          className={`px-4 py-2 text-white rounded-lg ${
+            isMicOn ? "bg-green-500 hover:bg-green-600" : "bg-gray-500"
+          }`}
+        >
+          {isMicOn ? "Mute Mic" : "Unmute Mic"}
+        </button>
+        <button
+          onClick={handleLeave}
+          className="px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600"
+        >
+          Leave
+        </button>
       </div>
     </div>
   );
